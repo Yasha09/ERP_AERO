@@ -1,0 +1,2853 @@
+openapi: 3.0.3
+info:
+  title: Simply Hiring
+  version: 1.0.0
+  description: Simply will find new talents
+tags:
+  - name: Auth
+    description: ""
+servers: [ { url: "http://localhost:4000/api" } ]
+
+paths:
+  # Authentication
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      requestBody:
+        description: Sign in to the system
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+
+  # User
+  /users:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Users
+      description: Get all Users
+      responses:
+        "200":
+          description: User array of objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserResponse"
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Users
+      description: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreateRequestbody"
+      responses:
+        "201":
+          description: Success message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User was successfully created"
+        "422":
+          description: If user's email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User with the specified e-mail already exists.
+
+  /users/{userId}:
+    put:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: number
+          required: true
+      description: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateRequestBody"
+      responses:
+        "201":
+          description: Success message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User was successfully updated"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found.
+
+    delete:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: number
+          required: true
+      description: Delete user.
+      responses:
+        "201":
+          description: Success message
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User was successfully deleted."
+        "403":
+          description: Forrbiden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: You cannot delete your account.
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User not found.
+
+  /users/current:
+    get:
+      tags:
+        - Users
+      security:
+        - bearerAuth: [ ]
+      description: Current user.
+      responses:
+        "200":
+          description: User object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+
+  /users/statuses:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Users
+      description: This api returns all status for user
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserStatusesResponse"
+
+
+  # Applicnats
+  /applicants/:
+    get:
+      parameters:
+        - in: query
+          name: take
+          schema:
+            type: integer
+          required: true
+          description: "The numbers of items to return"
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: true
+          description: 'If you are on the first page it will return the first 10 users, if second 11-20...It releated how much do you what to get "take"'
+        - in: query
+          name: search
+          description: All fields is case insensitive
+          schema:
+            type: object
+            properties:
+              firstName:
+                type: string
+                example: j
+              lastName:
+                type: string
+                example: "doe"
+              projects:
+                type: array
+                items:
+                  type: integer
+                  example: 1
+              stages:
+                type: array
+                items:
+                  type: integer
+                  example: 1
+              startDate:
+                type: string
+                example: "2020-01-01"
+              endDate:
+                type: string
+                example: "2022-12-31"
+        - in: query
+          name: order
+          description: Default is orderd by firstName
+          schema:
+            type: object
+            properties:
+              firstName:
+                type: string
+                example: "asc | desc"
+              lastName:
+                type: string
+                example: "asc | desc"
+              createdAt:
+                type: string
+                example: asc | desc
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      responses:
+        "200":
+          description: Getting all applicants
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetApplicantsResponse"
+    post:
+      description: Create Applicnat
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/CreateApplicnatRequestBody"
+
+
+      responses:
+        "201":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/CreateApplicnatResponse"
+
+  /applicants/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/GetApplicantByIdResponse"
+    put:
+      description: Update applicnat
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/CreateApplicnatRequestBody"
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant was successfully updated
+
+  /applicants/delete:
+    post:
+      description: delete Applicant
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/DeleteApplicantsRequestBody"
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant was successfully deleted
+
+  /applicants/notes:
+    post:
+      description: Add not to Applicnat
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              $ref: "#/components/schemas/AddNoteToApplicnatRequestBody"
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/AddNoteToApplicnatResponse"
+
+  /applicants/notes/{id}:
+    put:
+      description: Update note for Applicnat
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  example: updated note for this user
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/UpdateNoteToApplicnatResponse"
+    delete:
+      description: Delete note for Applicnat
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Note was successfully deleted
+
+  /applicants/{applicantId}/notes:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      parameters:
+        - in: path
+          name: applicantId
+          schema:
+            type: number
+          required: true
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/GetNotesOfApplicnatResponse"
+
+  /applicants/{applicantId}/projects:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      parameters:
+        - in: path
+          name: applicantId
+          schema:
+            type: number
+          required: true
+      responses:
+        default:
+          description: Getting all projects
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetApplicnatProjectsListResponse"
+
+    # This API endpoint no longer exists in the backEnd.
+    # But let it stay for now
+    #
+    #
+    # put:
+    #   security:
+    #     - bearerAuth: []
+    #   tags:
+    #     - Applicants
+    #   description: Update applicant data in project
+    #   requestBody:
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: '#/components/schemas/AddApplicantToProject'
+    #   responses:
+    #     '200':
+    #       description: Success case
+    #       content:
+    #         application/json:
+    #           schema:
+    #             type: object
+    #             properties:
+    #               message:
+    #                 type: string
+    #                 example: Applicant was successfully updated
+
+  /applicants/project/stage:
+    put:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      description: Update a stage of the applicant's project
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicantProjectStageRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant project stage successfully updated
+        "404":
+          description: In case if not found not project not applicant in project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Cannot find project or applicant in project
+
+  /applicants/upload:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectId:
+                  type: number
+                  example: 1
+      responses:
+        "201":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileUploadResponseSuccessCase"
+        "400":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/FileUploadResponseBadCase1"
+                  - $ref: "#/components/schemas/FileUploadResponseBadCase2"
+                  - $ref: "#/components/schemas/FileUploadResponseBadCase3"
+
+  /applicants/phone:
+    put:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Applicants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateApplicantPhoneNumberRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateApplicantPhoneNumberResponseSucces"
+        "400":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateApplicantPhoneNumberResponseBadCase"
+  # Projects
+  /projects:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      responses:
+        default:
+          description: Getting all projects
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllProjectsResponse"
+    post:
+      description: Create Project
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: New Project
+                description:
+                  type: string
+                  example: New Project description
+      responses:
+        "201":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Project was successfully created
+
+  /projects/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+          description: Project Id
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: "#/components/schemas/GetProjectByIdResponse"
+        "404":
+          description: In case of Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Project not found.
+
+    put:
+      description: Update Project
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+          description: Project Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  example: Updated Project
+                description:
+                  type: string
+                  example: Updated Project description
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Project was successfully updated
+
+    delete:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+          description: Project Id
+      responses:
+        default:
+          description: aaa
+
+  /projects/stages:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      responses:
+        default:
+          description: Get all stages of project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllStagesOfProjectResponse"
+
+  /projects/applicant/{pid}/{aid}:
+    delete:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      summary: Delete "Applicnat" from "Project"
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: number
+          required: true
+          description: Project Id
+        - in: path
+          name: aid
+          schema:
+            type: number
+          required: true
+          description: Applicnat Id
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully deleted applicant from project
+        "404":
+          description: In case if not found not project not applicant in project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Cannot find project or applicant in project
+
+  /projects/{projectId}/applicants:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      parameters:
+        - in: path
+          name: projectId
+          schema:
+            type: number
+          required: true
+      responses:
+        "200":
+          description: List of applicants included and not included in the project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attachedApplicants:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApplicantsProjectResponse"
+                  notAttachedApplicants:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ApplicantNotProjectResponse"
+
+  /projects/applicants:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Projects
+      description: Add applicant to project
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddApplicantToProjectRequestBody"
+      responses:
+        "201":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant was successfully attached to Project
+
+  # Tests
+  /tests/applicant:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Tests
+      description: Create applicant test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddApplicantTestRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Test was successfully added
+        "404":
+          description: In case if not found applicant test
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant or Project not found
+    put:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Tests
+      description: Update applicant test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTestApplicantRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant test successfully updated
+        "404":
+          description: In case if not found applicant test
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Cannot found applicant test
+
+  /tests:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Tests
+      description: Get all test
+      responses:
+        "200":
+          description: Get tests object in array
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestsResponse"
+
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Tests
+      description: Create test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTestRequst"
+      responses:
+        "201":
+          description: Test created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Test was successfully created
+        "409":
+          description: In case if incorrect test input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Please input correct Stage info
+        "404":
+          description: In case if stage not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Cannot found stage
+
+  /tests/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Tests
+      parameters:
+        - in: path
+          name: id
+          description: Test Id
+          schema:
+            type: number
+          required: true
+      description: Get single test
+      responses:
+        "200":
+          description: get single test
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestResponse"
+        "404":
+          description: In case if test not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Test not found"
+
+  # Mailer
+  /mailer/applicants:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Mailer
+      description: Send bulk emails with query params
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendEmailRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Emails was successfully sent
+        "404":
+          description: In case if not found applicant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant not found
+
+  # Mailer
+  /mailer/projects/{id}/applicants:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Mailer
+      parameters:
+        - in: path
+          name: id
+          description: Project Id
+          schema:
+            type: number
+          required: true
+      description: Send bulk emails with query params
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendEmailRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Emails was successfully sent
+        "404":
+          description: In case if not found applicant
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Applicant not found
+
+  /sms/applicants:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - SMS
+      description: Send SMS to allicants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendSMSRequestBody"
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: SMS successfully sended
+        "400":
+          description: In case some applicants provided an incorrect phone number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendSMSResponseBadCase"
+
+  /sms/projects/:projectId/applicants:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - SMS
+      parameters:
+        - in: path
+          name: projectId
+          description: Project Id
+          schema:
+            type: number
+          required: true
+      description: Project Id
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendSMSRequestBody"
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendSMSResponseProjectAPI"
+        "400":
+          description: In case some applicants provided an incorrect phone number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendSMSResponseProjectAPI"
+
+  /smsTemplate:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - SMS Template
+      responses:
+        default:
+          description: Getting all sms templates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/smsTemplatesResponse"
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - SMS Template
+      description: Create Sms Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/smsTemplateBody"
+      responses:
+        "201":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: smsTemplate was successfully created
+
+  /smsTemplate/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - SMS Template
+      parameters:
+        - in: path
+          name: id
+          description: Sms Template Id
+          schema:
+            type: number
+          required: true
+      description: Get single Sms Template
+      responses:
+        "200":
+          description: get single Sms Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/smsTemplateResponse"
+        "404":
+          description: In case if Sms Template not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metaData:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "smsTemplate not found"
+                  status:
+                    type: number
+                    example: 404
+    delete:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - SMS Template
+      parameters:
+        - in: path
+          name: id
+          description: Sms Template Id
+          schema:
+            type: number
+          required: true
+      description: Delete Sms Template
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: smsTemplate was successfully deleted
+        "404":
+          description: In case if Sms Template not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metaData:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "smsTemplate not found"
+                  status:
+                    type: number
+                    example: 404
+    put:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - SMS Template
+      parameters:
+        - in: path
+          name: id
+          description: Sms Template Id
+          schema:
+            type: number
+          required: true
+      description: Update Sms Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/smsTemplateBody"
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: smsTemplate was successfully updated
+  /emailTemplate:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Email Template
+      responses:
+        default:
+          description: Getting all email templates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/emailTemplatesResponse"
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Email Template
+      description: Create Email Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/emailTemplateBody"
+      responses:
+        "201":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: emailTemplate was successfully created
+
+  /emailTemplate/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Email Template
+      parameters:
+        - in: path
+          name: id
+          description: Email Template Id
+          schema:
+            type: number
+          required: true
+      description: Get single Email Template
+      responses:
+        "200":
+          description: get single Email Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/emailTemplateResponse"
+        "404":
+          description: In case if Email Template not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metaData:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "emailTemplate not found"
+                  status:
+                    type: number
+                    example: 404
+    delete:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Email Template
+      parameters:
+        - in: path
+          name: id
+          description: Email Template Id
+          schema:
+            type: number
+          required: true
+      description: Delete Email Template
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: emailTemplate was successfully deleted
+        "404":
+          description: In case if Email Template not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metaData:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "emailTemplate not found"
+                  status:
+                    type: number
+                    example: 404
+    put:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Email Template
+      parameters:
+        - in: path
+          name: id
+          description: Email Template Id
+          schema:
+            type: number
+          required: true
+      description: Update Email Template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/emailTemplateBody"
+      responses:
+        "200":
+          description: In case of success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: emailTemplate was successfully updated
+  # Activation
+  /activation/check-token:
+    post:
+      tags:
+        - Activation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckTokenRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckTokenResponse"
+    put:
+      tags:
+        - Activation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckTokenRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckTokenResponse"
+
+  /activation/set-password:
+    post:
+      tags:
+        - Activation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPasswordRquestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckTokenResponse"
+    put:
+      tags:
+        - Activation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPasswordRquestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckTokenResponse"
+
+  /activation/forgot-password:
+    post:
+      tags:
+        - Activation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordRequestBody"
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckTokenResponse"
+
+  # Files
+  /files/applicants/{id}:
+    get:
+      description: This API returns all files for this applicant
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Files
+      parameters:
+        - in: path
+          name: id
+          description: Applicant id
+          schema:
+            type: number
+          required: true
+      responses:
+        "200":
+          description: in case of success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetAllApplicantFilesResponse"
+
+  /files/applicants:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Files
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+
+          application/json:
+            schema:
+              type: object
+              properties:
+                applicantId:
+                  type: number
+                  example: 1
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttachFileToApplicantResponse"
+
+  /files/{id}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Files
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+      responses:
+        "200":
+          description: Returning a file.
+    delete:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Files
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: number
+          required: true
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: File was successfully deleted
+  /files/email:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - Files
+      description: Upload file and get file's url for email message
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        "200":
+          description: Success case
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: File was successfully uploaded
+                  files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 1
+                        label:
+                          type: string
+                          example: "email/d811eb76-8ad6-47c2-bfe3-07a1bd2515e2.jpg"
+                        url:
+                          type: string
+                          example: "https://simply-hiring.s3.amazonaws.com/email/d811eb76-8ad6-47c2-bfe3-07a1bd2515e2.jpg"
+
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          example: admin@admin.com
+        password:
+          type: string
+          example: admin123
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            email:
+              type: string
+              example: test@test.com
+            firstName:
+              type: string
+              example: A
+            lastName:
+              type: string
+              example: A
+            status:
+              type: string
+              example: Active
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjYzMzA5MDQ5LCJleHAiOjE2NjMzMDk5NDl9.YHNQJKp_EQoMYUNXY87gGHTrf8jEhXQGcpUONSSMAok
+        refreshToken:
+          type: string
+          example: 4a164bb1-a0fb-4ca0-9125-2724b9f85ba5
+
+    GetApplicantsResponse:
+      type: object
+      properties:
+        applicants:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApplicantModal"
+        count:
+          type: array
+          items:
+            type: object
+            properties:
+              count:
+                type: integer
+                example: 7
+
+    GetAllProjectsResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/ProjectInstance"
+
+    GetAllStagesOfProjectResponse:
+      type: array
+      items:
+        $ref: "#/components/schemas/StageInstance"
+
+    GetApplicnatProjectsListResponse:
+      type: object
+      properties:
+        projects:
+          type: array
+          items:
+            type: object
+            properties:
+              Prject:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  name:
+                    type: string
+                    example: First Project
+              Applicant:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  firstName:
+                    type: string
+                    example: Dwayne
+                  lastName:
+                    type: string
+                    example: Johnson
+              stage:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  name:
+                    type: string
+                    example: Online Quiz
+              TestInfo:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: number
+                      example: 1
+                    tests:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 1
+                        name:
+                          type: string
+                          example: onlineTest
+                    stage:
+                      type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 3
+                        name:
+                          type: string
+                          example: Interview
+                    score:
+                      type: number
+                      example: 100
+                    time:
+                      type: number
+                      example: 30
+                    note:
+                      type: string
+                      example: Note example for this applicant
+
+    AddApplicantToProjectRequestBody:
+      type: object
+      properties:
+        applicantsId:
+          type: array
+          items:
+            type: number
+            example: 1
+        projectId:
+          type: number
+          example: 1
+        stageId:
+          type: number
+          example: 1
+        test:
+          type: object
+          properties:
+            testId:
+              type: number
+              example: 1
+            score:
+              type: number
+              example: 70
+            time:
+              type: number
+              example: 30
+            note:
+              type: string
+              example: Note example
+            stageId:
+              type: number
+              example: 1
+
+    ApplicantModal:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        firstName:
+          type: string
+          example: First
+        lastName:
+          type: string
+          example: Applicant
+        projects:
+          type: array
+          items:
+            type: string
+            example: [ "Project One", Project Two ]
+        stage:
+          type: array
+          description: 0 index of array the lastest stage of applicant
+          items:
+            type: string
+            example: [ "Office Quiz", "Online Quiz" ]
+        createdAt:
+          type: string
+          example: "2022-09-12T12:32:01.798Z"
+
+    ProjectInstance:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        name:
+          type: string
+          example: "Project 1"
+        slug:
+          type: string
+          example: "project-2"
+        description:
+          type: string
+          example: "Project 2"
+        status:
+          type: string
+          example: "Active"
+        createdAt:
+          type: string
+          example: "2022-09-12T14:37:18.258Z"
+
+    StageInstance:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        name:
+          type: string
+          example: "Online Quiz"
+
+    ApplicantProjectStageRequestBody:
+      type: object
+      properties:
+        applicantId:
+          type: number
+          example: 1
+        projectId:
+          type: number
+          example: 1
+        stageId:
+          type: number
+          example: 1
+
+    ApplicantsProjectResponse:
+      type: object
+      properties:
+        applicantsList:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApplicantsProjectList"
+        count:
+          type: number
+          example: 5
+
+    ApplicantNotProjectResponse:
+      type: object
+      properties:
+        applicantsList:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              firstName:
+                type: string
+                example: "John"
+              lastName:
+                type: string
+                example: "McJohn"
+        count:
+          type: number
+          example: 5
+
+    ApplicantsProjectList:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        project:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            name:
+              type: string
+              example: "Project One"
+        applicant:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            firstName:
+              type: string
+              example: John
+            lastName:
+              type: string
+              example: Doe
+        stage:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 2
+            name:
+              type: number
+              example: Office Quize
+        testInfo:
+          type: array
+          items:
+            type: object
+            properties:
+              time:
+                type: number
+                example: 55
+              score:
+                type: number
+                example: 33
+              stage:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 2
+                  name:
+                    type: string
+                    example: "Office Quiz"
+              test:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  name:
+                    type: string
+                    example: onlineTest
+
+    UpdateTestApplicantRequestBody:
+      type: object
+      properties:
+        projectId:
+          type: number
+          example: 1
+        applicantId:
+          type: number
+          example: 1
+        tests:
+          type: array
+          items:
+            type: object
+            properties:
+              testId:
+                type: number
+                example: 1
+                description: It's test name id
+              score:
+                type: number
+                example: 79
+                maximum: 100
+                minimum: 0
+              time:
+                type: number
+                example: 120
+              note:
+                type: string
+                example: He doesn't know JS but he has good logic
+              stageId:
+                type: number
+                example: 2
+      required:
+        - projectId
+        - applicantId
+        - tests
+
+    AddApplicantTestRequestBody:
+      type: object
+      properties:
+        projectId:
+          type: number
+          example: 1
+        applicantId:
+          type: number
+          example: 1
+        test:
+          type: object
+          properties:
+            testId:
+              type: number
+              example: 1
+            score:
+              type: number
+              example: 100
+            time:
+              type: number
+              example: 30
+            note:
+              type: string
+              example: Note about applicant test
+            stageId:
+              type: number
+              example: 1
+      required:
+        - projectId
+        - applicantId
+        - test
+
+    UserStatusesResponse:
+      type: object
+      properties:
+        statuses:
+          type: array
+          example: [ "Pending","Active" ]
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        email:
+          type: string
+          example: "john@gmail.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "McJohn"
+        status:
+          type: string
+          example: "Active"
+
+    UserCreateRequestbody:
+      type: object
+      required:
+        - email
+        - firstName
+        - lastName
+      properties:
+        email:
+          type: string
+          example: "john@gmail.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "McJohn"
+
+    GetProjectByIdResponse:
+      type: object
+      $ref: "#/components/schemas/ProjectInstance"
+
+    UserUpdateRequestBody:
+      type: object
+      required:
+        - name
+      properties:
+        firstName:
+          type: string
+          example: "JohnU"
+        lastName:
+          type: string
+          example: "McJohnU"
+
+    CreateApplicnatRequestBody:
+      type: object
+      properties:
+        firstName:
+          type: string
+          example: "First Name"
+        lastName:
+          type: string
+          example: "Last Name"
+        email:
+          type: string
+          example: example@example.com
+        phone:
+          type: string
+          example: +37491111111
+        links:
+          type: array
+          items:
+            type: string
+            example: "..........."
+        description:
+          type: string
+          example: "Description about applicant"
+        projectId:
+          type: number
+          example: 1
+        stageId:
+          type: number
+          example: 1
+        test:
+          type: object
+          properties:
+            testId:
+              type: number
+              example: 1
+            score:
+              type: number
+              example: 80
+            time:
+              type: number
+              example: 20
+            note:
+              type: string
+              example: Test note
+            stageId:
+              type: number
+              example: 1
+
+    CreateApplicnatResponse:
+      type: object
+      properties:
+        applicnat:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 6
+        message:
+          type: string
+          example: Applicant was successfully created
+
+    GetApplicantByIdResponse:
+      type: object
+      properties:
+        applicant:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            firstName:
+              type: string
+              example: First Name
+            lastName:
+              type: string
+              example: Last Name
+            email:
+              type: string
+              example: test@test.com
+            phone:
+              type: string
+              example: +37491111111
+            createdAt:
+              type: string
+              example: "2022-09-29T08:46:56.384Z"
+            description:
+              type: string
+              example: description for applicant
+            links:
+              type: array
+              items:
+                type: string
+                example: "..........."
+            files:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  label:
+                    type: string
+                    example: test label
+                  url:
+                    type: string
+                    example: https://google.com
+
+    DeleteApplicantsRequestBody:
+      type: array
+      items:
+        type: number
+      example: [ 1, 2, 3 ]
+
+    AddNoteToApplicnatRequestBody:
+      type: object
+      properties:
+        applicantId:
+          type: number
+          example: 1
+        note:
+          type: string
+          example: Note for this applicnat
+
+    AddNoteToApplicnatResponse:
+      type: object
+      properties:
+        note:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            note:
+              type: string
+              example: Note for this applicnat
+            applicantsId:
+              type: number
+              example: 1
+            createdAt:
+              type: string
+              example: 2022-10-03T14:49:13.323Z
+            updatedAt:
+              type: string
+              example: 2022-10-03T14:49:13.323Z
+            userId:
+              type: number
+              example: 1
+        message:
+          type: string
+          example: Note was successfully created
+
+    UpdateNoteToApplicnatResponse:
+      type: object
+      properties:
+        note:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            note:
+              type: string
+              example: Note for this applicnat
+            applicantsId:
+              type: number
+              example: 1
+            createdAt:
+              type: string
+              example: 2022-10-03T14:49:13.323Z
+            updatedAt:
+              type: string
+              example: 2022-10-03T14:49:13.323Z
+            userId:
+              type: number
+              example: 1
+        message:
+          type: string
+          example: Note was successfully updated
+
+    GetNotesOfApplicnatResponse:
+      type: object
+      properties:
+        notes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              note:
+                type: string
+                example: Example note for this Applicant
+              applicnatId:
+                type: number
+                example: 1
+              userId:
+                type: number
+                example: 1
+              user:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  firstName:
+                    type: string
+                    example: First name
+                  lastname:
+                    type: string
+                    example: Last name
+              createdAt:
+                type: string
+                example: 2022-10-03T14:49:13.323Z
+              updatedAt:
+                type: string
+                example: 2022-10-03T14:49:13.323Z
+
+    TestResponse:
+      type: object
+      properties:
+        test:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            name:
+              type: string
+              example: "jsTest"
+            label:
+              type: string
+              example: "JS Test"
+            max:
+              type: number
+              example: 100
+            stageId:
+              type: number
+              example: 1
+            stage:
+              type: object
+              properties:
+                id:
+                  type: number
+                  example: 1
+                name:
+                  type: string
+                  example: Office Quiz
+    TestsResponse:
+      type: object
+      properties:
+        tests:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              name:
+                type: string
+                example: "jsTest"
+              label:
+                type: string
+                example: "JS Test"
+              max:
+                type: number
+                example: 100
+              stageId:
+                type: number
+                example: 1
+              stage:
+                type: object
+                properties:
+                  id:
+                    type: number
+                    example: 1
+                  name:
+                    type: string
+                    example: Office Quiz
+
+    CreateTestRequst:
+      type: object
+      properties:
+        label:
+          type: string
+          example: "React Test"
+        max:
+          type: number
+          example: 100
+        stageId:
+          type: number
+          example: 2
+      required:
+        - label
+        - max
+        - stageId
+
+    CheckTokenRequestBody:
+      type: object
+      properties:
+        activationToken:
+          type: string
+
+    CheckTokenResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+
+    SetPasswordRquestBody:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        password:
+          type: string
+        passwordConfirmation:
+          type: string
+
+    ForgotPasswordRequestBody:
+      type: object
+      properties:
+        email:
+          type: string
+          example: example@gmail.com
+
+    AttachFileToApplicantResponse:
+      type: object
+      properties:
+        file:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            label:
+              type: string
+              example: label for this file
+            url:
+              type: string
+              example: ...........
+        message:
+          type: string
+          example: File was successfully uploaded
+
+    GetAllApplicantFilesResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              label:
+                type: string
+                example: example file label
+              url:
+                type: string
+                example: Https://google.com
+
+    SendEmailRequestBody:
+      type: object
+      properties:
+        subject:
+          type: string
+          example: test subject
+        message:
+          type: string
+          example: test message
+        applicants:
+          type: array
+          items:
+            type: number
+            example: 1
+        applicantsExclude:
+          type: array
+          items:
+            type: number
+            example: 1
+        toAll:
+          type: boolean
+          example: true
+        attachment:
+          type: array
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+                example: "file.png"
+              content:
+                type: string
+                example: "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAApgAAAKYB3X3/OAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANCSURBVEiJtZZPbBtFFMZ/M7ubXdtdb1xSFyeilBapySVU8h8OoFaooFSqiihIVIpQBKci6KEg9Q6H9kovIHoCIVQJJCKE1ENFjnAgcaSGC6rEnxBwA04Tx43t2FnvDAfjkNibxgHxnWb2e/u992bee7tCa00YFsffekFY+nUzFtjW0LrvjRXrCDIAaPLlW0nHL0SsZtVoaF98mLrx3pdhOqLtYPHChahZcYYO7KvPFxvRl5XPp1sN3adWiD1ZAqD6XYK1b/dvE5IWryTt2udLFedwc1+9kLp+vbbpoDh+6TklxBeAi9TL0taeWpdmZzQDry0AcO+jQ12RyohqqoYoo8RDwJrU+qXkjWtfi8Xxt58BdQuwQs9qC/afLwCw8tnQbqYAPsgxE1S6F3EAIXux2oQFKm0ihMsOF71dHYx+f3NND68ghCu1YIoePPQN1pGRABkJ6Bus96CutRZMydTl+TvuiRW1m3n0eDl0vRPcEysqdXn+jsQPsrHMquGeXEaY4Yk4wxWcY5V/9scqOMOVUFthatyTy8QyqwZ+kDURKoMWxNKr2EeqVKcTNOajqKoBgOE28U4tdQl5p5bwCw7BWquaZSzAPlwjlithJtp3pTImSqQRrb2Z8PHGigD4RZuNX6JYj6wj7O4TFLbCO/Mn/m8R+h6rYSUb3ekokRY6f/YukArN979jcW+V/S8g0eT/N3VN3kTqWbQ428m9/8k0P/1aIhF36PccEl6EhOcAUCrXKZXXWS3XKd2vc/TRBG9O5ELC17MmWubD2nKhUKZa26Ba2+D3P+4/MNCFwg59oWVeYhkzgN/JDR8deKBoD7Y+ljEjGZ0sosXVTvbc6RHirr2reNy1OXd6pJsQ+gqjk8VWFYmHrwBzW/n+uMPFiRwHB2I7ih8ciHFxIkd/3Omk5tCDV1t+2nNu5sxxpDFNx+huNhVT3/zMDz8usXC3ddaHBj1GHj/As08fwTS7Kt1HBTmyN29vdwAw+/wbwLVOJ3uAD1wi/dUH7Qei66PfyuRj4Ik9is+hglfbkbfR3cnZm7chlUWLdwmprtCohX4HUtlOcQjLYCu+fzGJH2QRKvP3UNz8bWk1qMxjGTOMThZ3kvgLI5AzFfo379UAAAAASUVORK5CYII="
+
+    FileUploadResponseSuccessCase:
+      type: object
+      properties:
+        messge:
+          type: string
+          example: List of applicants successfully uploaded
+
+    FileUploadResponseBadCase1:
+      type: object
+      properties:
+        messge:
+          type: string
+          example: Something went wrong
+
+    FileUploadResponseBadCase2:
+      type: object
+      properties:
+        messge:
+          type: string
+          example: Please, review the file. Required data is missing for one or several applicants
+
+    FileUploadResponseBadCase3:
+      type: object
+      properties:
+        messge:
+          type: string
+          example: Project id is required
+
+    UpdateApplicantPhoneNumberRequestBody:
+      type: object
+      properties:
+        update:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              phone:
+                type: string
+                example: "+37441111111"
+
+    UpdateApplicantPhoneNumberResponseSucces:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        updatedListOfApplicants:
+          type: array
+          items:
+            type: number
+            example: [ 1 ]
+
+    UpdateApplicantPhoneNumberResponseBadCase:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Something went wrong
+
+    SendSMSRequestBody:
+      type: object
+      properties:
+        send:
+          type: array
+          items:
+            type: number
+          example: [ 1 ]
+        exclude:
+          type: array
+          items:
+            type: number
+          example: [ 2, 3 ]
+        toAll:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Test sms message
+    smsTemplateBody:
+      type: object
+      properties:
+        name:
+          type: string
+          example: notify
+        message:
+          type: string
+          example: notify sms message
+
+    SendSMSResponseProjectAPI:
+      type: object
+      properties:
+        message:
+          type: string
+          example: This applicnats have no valid phone numbers
+        applicant:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              applicantId:
+                type: number
+                example: 1
+              firstName:
+                type: string
+                example: FirstName
+              lastName:
+                type: string
+                example: LastName
+              email:
+                type: string
+                example: example@mail.com
+              phone:
+                type: string
+                example: +37491111111
+              stage:
+                type: string
+                example: Online Quiz
+              stageId:
+                type: number
+                example: 1
+              onlineQuizMin:
+                type: string
+                example: 12
+              onlineTest:
+                type: number
+                example: 12
+              logicTest:
+                type: number
+                example: 20
+              generalTest:
+                type: number
+                example: null
+              jsTest:
+                type: number
+                example: null
+
+    smsTemplatesResponse:
+      type: object
+      properties:
+        smsTemplates:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              name:
+                type: string
+                example: notify
+              message:
+                type: string
+                example: notify sms template
+              status:
+                type: string
+                example: Active
+              createdAt:
+                type: string
+                example: "2022-11-02T08:10:19.423Z"
+              updatedAtAt:
+                type: string
+                example: "2022-11-02T08:10:19.423Z"
+    smsTemplateResponse:
+      type: object
+      properties:
+        smsTemplates:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            name:
+              type: string
+              example: notify
+            message:
+              type: string
+              example: notify sms template
+            status:
+              type: string
+              example: Active
+            createdAt:
+              type: string
+              example: "2022-11-02T08:10:19.423Z"
+            updatedAtAt:
+              type: string
+              example: "2022-11-02T08:10:19.423Z"
+    emailTemplateBody:
+      type: object
+      properties:
+        name:
+          type: string
+          example: notify
+        subject:
+          type: string
+          example: test subject
+        message:
+          type: string
+          example: <p>dear {{firstName}}</p>
+    emailTemplatesResponse:
+      type: object
+      properties:
+        emailTemplates:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+                example: 1
+              name:
+                type: string
+                example: notify
+              subject:
+                type: string
+                example: test subject
+              message:
+                type: string
+                example: <p>dear {{firstName}}</p>
+              status:
+                type: string
+                example: Active
+              createdAt:
+                type: string
+                example: "2022-11-02T08:10:19.423Z"
+              updatedAtAt:
+                type: string
+                example: "2022-11-02T08:10:19.423Z"
+    emailTemplateResponse:
+      type: object
+      properties:
+        smsTemplates:
+          type: object
+          properties:
+            id:
+              type: number
+              example: 1
+            name:
+              type: string
+              example: notify
+            subject:
+              type: string
+              example: test subject
+            message:
+              type: string
+              example: <p>dear {{firstName}}</p>
+            status:
+              type: string
+              example: Active
+            createdAt:
+              type: string
+              example: "2022-11-02T08:10:19.423Z"
+            updatedAtAt:
+              type: string
+              example: "2022-11-02T08:10:19.423Z"
+
+    SendSMSResponseBadCase:
+      type: object
+      properties:
+        message:
+          type: string
+          example: This applicnats have no valid phone numbers
+        applicants:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApplicantModel"
+
+    ApplicantModel:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        firstName:
+          type: string
+          example: First
+        lastName:
+          type: string
+          example: Applicant
+        email:
+          type: string
+          example: firstApplicant@gmail.com
+        phone:
+          type: string
+          example: ""
+        description:
+          type: string
+          example: "Example description"
+        links:
+          type: array
+          items:
+            type: string
+          example: [ "....." ]
+        status:
+          type: string
+          enum: [ Active, Inactive, Deleted ]
+        createdAt:
+          type: string
+          example: "2022-09-12T12:32:01.798Z"
+        updatedAtAt:
+          type: string
+          example: "2022-09-12T12:32:01.798Z"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
