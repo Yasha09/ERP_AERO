@@ -41,7 +41,6 @@ class AccessTokenService {
                 });
             });
         } catch (error) {
-            console.log('3333333333333333333')
             throw new Exception(HTTPStatus.Unauthorized, {
                 message: errorMessages.unAuthenticated,
             });

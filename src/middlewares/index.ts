@@ -8,7 +8,6 @@ import userService from "../models/users/user.service";
 
 export const getAccessToken = (req: AuthRequest): string => {
     const {authorization} = req.headers;
-    console.log('authorization', authorization)
     if (!authorization) {
         throw new Exception(HTTPStatus.Unauthorized, {
             message: errorMessages.unAuthenticated,
@@ -18,11 +17,10 @@ export const getAccessToken = (req: AuthRequest): string => {
 };
 
 export const getUserByPayload = async (userPayload: JwtPayload): Promise<User> => {
-    console.log('aaaaaaaaa')
     const user: User | null = await userService.getOne({
         id: userPayload.userId,
     });
-    console.log('user', user)
+
     if (!user) {
         throw new Exception(HTTPStatus.Unauthorized, {
             message: errorMessages.unAuthenticated,

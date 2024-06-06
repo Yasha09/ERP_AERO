@@ -8,6 +8,7 @@ import {userIdentifier} from "./utils/user_identifier.utils";
 import {ISignInPayload, ISignInRequest, ISignupRequest, ISignInResponse, IUserResponse} from "./interface";
 import refreshTokenService from "./refreshToken.service";
 import errorMessages from "../../common/constants/errorMessages";
+import {logger} from "../../common/logger/winston";
 
 
 class AuthService {
@@ -18,6 +19,7 @@ class AuthService {
         const user: User | null = await userService.getOne(id);
 
         if (user) {
+            logger.error('User already exists');
             throw new Exception(HTTPStatus.Conflict, {message: errorMessages.userExists});
         }
 
@@ -55,12 +57,14 @@ class AuthService {
         const user: User | null = await userService.getOne(id);
 
         if (!user) {
+            logger.error('User not found');
             throw new Exception(HTTPStatus.Unauthorized, {message: 'User not found'});
         }
 
         const isPasswordCorrect: boolean = await comparePasswords(password, user.password);
 
         if (!isPasswordCorrect) {
+            logger.error('Invalid password');
             throw new Exception(HTTPStatus.Unauthorized, {message: 'Invalid password'});
         }
 

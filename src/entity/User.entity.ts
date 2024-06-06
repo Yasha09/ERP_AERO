@@ -8,23 +8,24 @@ import {
     UpdateDateColumn, OneToMany, BaseEntity,
 } from "typeorm";
 import {RefreshToken} from "./RefreshToken.entity";
+import {File} from "./File.entity";
 
 
-@Entity({ name: "user" })
+@Entity({name: "user"})
 export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ nullable: false })
+    @Column({nullable: false})
     name: string;
 
-    @Column({ nullable: true, unique: true })
+    @Column({nullable: true, unique: true})
     phone: string;
 
-    @Column({ nullable: true, unique: true })
+    @Column({nullable: true, unique: true})
     email: string;
 
-    @Column({ nullable: false })
+    @Column({nullable: false})
     password: string;
 
     @CreateDateColumn()
@@ -33,6 +34,9 @@ export class User {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @OneToMany(()=> RefreshToken, refreshToken=>refreshToken.user)
+    @OneToMany(() => RefreshToken, refreshToken => refreshToken.user)
     refreshTokens: RefreshToken[]
+
+    @OneToMany(() => File, file => file.user)
+    uploadFiles: File[]
 }

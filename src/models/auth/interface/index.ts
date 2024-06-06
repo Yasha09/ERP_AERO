@@ -25,9 +25,9 @@ export interface ISignInResponse {
 
 
 export interface IUser {
-    id: number;
+    id: string;
     name: string;
-    email: string;
+    userId: number;
 }
 
 export interface IUserResponse {

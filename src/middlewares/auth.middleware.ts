@@ -14,11 +14,9 @@ import {getAccessToken, getUserByPayload} from "./index";
 
 export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        console.log('22222222222', getAccessToken(req))
         const token = getAccessToken(req);
         if (!token) {
             // todo
-            console.log('11111111111')
             throw new Exception(HTTPStatus.Unauthorized, {
                 message: errorMessages.unAuthenticated,
             });

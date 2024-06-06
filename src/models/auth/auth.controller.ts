@@ -4,9 +4,10 @@ import authService from "./auth.service";
 import {ISignInResponse} from "./interface";
 import refreshTokenService from "./refreshToken.service";
 import {HTTPStatus} from "../../errorHandler/types";
-import {RefreshToken} from "../../entity/RefreshToken.entity";
 import {successMessages} from "../../common/constants/successMessages";
 import {TRefreshTokenResponse} from "./types/refreshToken.type";
+import {AuthRequest} from "../../common/interfaces";
+import {logger} from "../../common/logger/winston";
 
 class AuthController {
     async signUp(req: Request, res: Response, next: NextFunction) {
@@ -25,25 +26,6 @@ class AuthController {
         try {
             const {deviceId} = req.body;
             const user = await authService.validateUserCredentials(req.body);
-
-            // // Todo: separate this logic to a service
-            // if (req.cookies.jwt && req.cookies.jwt !== 'undefined') {
-            //     const jwt = req.cookies.jwt;
-            //     if (jwt) {
-            //         const response: RefreshToken = await refreshTokenService.getRefreshToken({
-            //             userId: user.id,
-            //             token: jwt,
-            //             deviceId: req.body.deviceId
-            //         });
-            //         console.log('response', response)
-            //         // stolen token
-            //         if (!response) {
-            //             // todo: remove all jwt token user
-            //         }
-            //         // todo: remove current jwt token
-            //         res.clearCookie('jwt', {httpOnly: true, secure: true, sameSite: 'none'});
-            //     }
-            // }
 
             const response: ISignInResponse = await authService.signIn({
                 user,
@@ -66,7 +48,7 @@ class AuthController {
         }
     }
 
-    async refreshTokens(req: Request, res: Response, next: NextFunction) {
+    async refreshTokens(req: AuthRequest, res: Response, next: NextFunction) {
         try {
             const cookies = req.cookies;
 
@@ -92,6 +74,7 @@ class AuthController {
                 }
             });
         } catch (error) {
+            logger.error(error);
             next(error);
         }
     }

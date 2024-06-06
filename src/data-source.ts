@@ -4,6 +4,7 @@ import {DataSource} from "typeorm";
 import * as dotenv from "dotenv";
 import {User} from "./entity/User.entity";
 import {RefreshToken} from "./entity/RefreshToken.entity";
+import {File} from "./entity/File.entity";
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ export const AppDataSource = new DataSource({
 
     synchronize: false,
     logging: NODE_ENV === "dev" ? false : false,
-    entities: [User,RefreshToken], // [User, Movie
+    entities: [User, RefreshToken, File],
     migrations: ["dist/migrations/*{.ts,.js}"],
     migrationsTableName: "custom_migration_table",
     subscribers: [],

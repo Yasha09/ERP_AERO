@@ -26,24 +26,6 @@ class RefreshTokenModel {
             });
         }
     }
-
-    async verify(token: string): Promise<jwt.JwtPayload> {
-        try {
-            return await new Promise((resolve, reject) => {
-                jwt.verify(token, config.REFRESH_TOKEN_SECRET, (error, decoded) => {
-                    if (error) {
-                        return reject(error);
-                    }
-                    // const hackedUser = await User.findOne({id: decoded.userId}).exec();
-                    // remove all refresh tokens for this user
-                });
-            });
-        } catch (error) {
-            throw new Exception(HTTPStatus.Unauthorized, {
-                message: errorMessages.forbidden,
-            });
-        }
-    }
 }
 
 const refreshTokenModel = new RefreshTokenModel();

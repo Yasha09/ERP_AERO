@@ -1,7 +1,6 @@
 import {IUserId} from "../../users/interface/user.interface";
 
 export const userIdentifier = (payload: IUserId, email?: string): TUserIdentifier => {
-    console.log('userIdentifier', payload, email)
     if (email && payload.email) {
         return { email: payload.email };
     } else if (payload.phone) {

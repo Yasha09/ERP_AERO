@@ -9,6 +9,7 @@ import errorMessages from "../../common/constants/errorMessages";
 import {AppDataSource} from "../../data-source";
 import {RefreshToken} from "../../entity/RefreshToken.entity";
 import {User} from "../../entity/User.entity";
+import {logger} from "../../common/logger/winston";
 
 
 class RefreshTokenService {
@@ -106,13 +107,14 @@ class RefreshTokenService {
     // todo: add types
     async getRefreshToken(criteria: { userId?: number, deviceId: string, token: string }): Promise<RefreshToken> {
         const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
-        console.log('criteria', criteria)
+
         const refreshToken = await refreshTokenRepository.findOne({
             where: criteria,
             relations: ['user']
         });
 
         if (!refreshToken) {
+            logger.error('Refresh token not found');
             throw new Exception(HTTPStatus.Unauthorized, {message: 'Refresh token not found'});
         }
 
@@ -132,6 +134,7 @@ class RefreshTokenService {
                 });
             });
         } catch (error) {
+            logger.error(error);
             throw new Exception(HTTPStatus.Unauthorized, {
                 message: errorMessages.forbidden,
             });
@@ -146,6 +149,7 @@ class RefreshTokenService {
         });
 
         if (!refreshToken) {
+            logger.error('Refresh token not found');
             throw new Exception(HTTPStatus.Unauthorized, {message: 'Refresh token not found'});
         }
 

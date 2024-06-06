@@ -4,12 +4,12 @@ import {ISignupRequest, IUser} from "../auth/interface";
 
 class UserService {
 
-    async userInfo(id: number): Promise<User> {
-        const user = await this.getOne({id});
+    async userInfo(id: number): Promise<IUser> {
+        const user: User | null = await this.getOne({id});
         if (!user) {
             throw new Error('User not found');
         }
-        return user;
+        return this.userDTO(user);
     }
 
     async getOne(credential: TUserCriteria): Promise<User | null> {
@@ -30,8 +30,8 @@ class UserService {
 
     userDTO(user: User): IUser {
         return {
-            id: user.id,
-            email: user.email,
+            userId: user.id,
+            id: user.email ?? user.phone,
             name: user.name
         }
     }

@@ -13,8 +13,6 @@ export const errorHandler = (
     if (err instanceof Exception) {
         res.status(err.status).send(err);
     } else {
-        // eslint-disable-next-line no-console
-        console.log("err---------->", err);
         res.status(HTTPStatus.InternalServerError).send({ metaData: { message: errorMessages.internalServerError } });
     }
 };
